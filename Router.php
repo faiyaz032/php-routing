@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Routing;
-
 class Router
 {
     private static $noMatch = true;
@@ -26,10 +25,27 @@ class Router
         $params = self::getMatches($pattern);
 
         if ($params) {
+
+            $functionArguments = array_slice($params, 1);
+            self::$noMatch = false;
+
             if (is_callable($callback)) {
-                self::$noMatch = false;
                 $functionArguments = array_slice($params, 1);
-                $callback(...$functionArguments);
+                self::$noMatch = false;
+                if (is_array($callback)) {
+                    $className = $callback[0];
+                    $methodName = $callback[1];
+                    $instance = $className::getInstance();
+                    $instance->$methodName(...$functionArguments);
+                } else {
+                    $callback(...$functionArguments);
+                }
+            } else {
+                $parts = explode('@', $callback);
+                $className = "App\Controller\\".$parts[0];
+                $methodName = $parts[1];
+                $instance = $className::getInstance();
+                $instance->$methodName(...$functionArguments);
             }
         }
     }
@@ -39,8 +55,7 @@ class Router
         if ($_SERVER['REQUEST_METHOD'] != 'GET') {
             return;
         }
-
-        self::process($pattern,$callback);
+        self::process($pattern, $callback);
     }
 
     public static function post($pattern, $callback)
@@ -48,7 +63,7 @@ class Router
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             return;
         }
-        self::process($pattern,$callback);
+        self::process($pattern, $callback);
     }
 
     public static function delete($pattern, $callback)
@@ -56,8 +71,8 @@ class Router
         if ($_SERVER['REQUEST_METHOD'] != 'DELETE') {
             return;
         }
-        
-        self::process($pattern,$callback);
+
+        self::process($pattern, $callback);
     }
 
     public static function cleanup()

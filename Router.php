@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Routing;
+
 class Router
 {
     private static $noMatch = true;
@@ -30,8 +31,10 @@ class Router
             self::$noMatch = false;
 
             if (is_callable($callback)) {
+
                 $functionArguments = array_slice($params, 1);
                 self::$noMatch = false;
+
                 if (is_array($callback)) {
                     $className = $callback[0];
                     $methodName = $callback[1];
@@ -40,9 +43,10 @@ class Router
                 } else {
                     $callback(...$functionArguments);
                 }
+
             } else {
                 $parts = explode('@', $callback);
-                $className = "App\Controller\\".$parts[0];
+                $className = "App\Controller\\" . $parts[0];
                 $methodName = $parts[1];
                 $instance = $className::getInstance();
                 $instance->$methodName(...$functionArguments);
